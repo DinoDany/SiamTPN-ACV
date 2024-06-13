@@ -38,9 +38,9 @@ class Backbone(torch.nn.Module):
         self.stage4 = model.stage4
         self.conv5 = model.conv5
 
-        self.conv1 = nn.Conv2d(in_channels=232, out_channels=232, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(in_channels=232, out_channels=464, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=464, out_channels=464, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(in_channels=1024, out_channels=464, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
         logging.info("Staring the backbone")
@@ -52,7 +52,7 @@ class Backbone(torch.nn.Module):
         logging.debug("Stage 3/1 %s", stage3_output.shape)
         stage3_output = self.conv1(stage3_output)
         logging.debug("Stage 3/2 %s", stage3_output.shape)
-        stage3_output = torch.flatten(stage3_output, 1)
+        stage3_output = stage3_output.view(stage3_output.shape[0], stage3_output.shape[1], -1)  
         logging.debug("Stage 3/3 %s", stage3_output.shape)
 
         x = self.stage4(x)
@@ -60,7 +60,7 @@ class Backbone(torch.nn.Module):
         logging.debug("Stage 4/1 %s", stage4_output.shape)
         stage4_output = self.conv2(stage4_output)
         logging.debug("Stage 4/2 %s", stage4_output.shape)
-        stage4_output = torch.flatten(stage4_output, 1)
+        stage4_output = stage4_output.view(stage4_output.shape[0], stage4_output.shape[1], -1) 
         logging.debug("Stage 4/3 %s", stage4_output.shape)
 
         x = self.conv5(x)
@@ -68,7 +68,7 @@ class Backbone(torch.nn.Module):
         logging.debug("Stage 5/1 %s", stage5_output.shape)
         stage5_output = self.conv3(stage5_output)
         logging.debug("Stage 5/1 %s", stage5_output.shape)
-        stage5_output = torch.flatten(stage5_output, 1)
+        stage5_output = stage5_output.view(stage5_output.shape[0], stage5_output.shape[1], -1) 
         logging.debug("Stage 5/1 %s", stage5_output.shape)
 
         logging.info("Backbone finished")
