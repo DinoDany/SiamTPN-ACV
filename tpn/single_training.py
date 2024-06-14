@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -36,17 +37,17 @@ class SingleVideoDataset(Dataset):
         with open(groundtruth_file, 'r') as f:
             annots = f.readlines()
 
-         # Create template from the first frame and its bounding box
+        # Create template from the first frame and its bounding box
         template_frame = Image.open(os.path.join(video_path, frame_names[0])).convert('RGB')
-        template_bbox = [int(x) for x in annots[0].strip().split(',')]
-        template_crop = self.crop_image(template_frame, template_bbox)
+        x, y, w, h = [int(x) for x in annots[0].strip().split(',')]
+        template_crop = template_frame.crop((x, y, x + w, y + h))
 
         # Map frame names to full paths and annotations
         for frame_name in frame_names:
             frame_file = os.path.join(video_path, frame_name)
             frame_index = int(frame_name.split('.')[0]) - 1  # assuming frame names are like '0001.jpg', '0002.jpg', etc.
             search_frame = Image.open(frame_file).convert('RGB')
-            search_bbox = [float(x) for x in annots[frame_index].strip().split(',')]
+            search_bbox = [int(x) for x in annots[frame_index].strip().split(',')]
             template_search_pairs.append((template_crop, search_frame))
             annotations.append(search_bbox)
 
@@ -75,8 +76,8 @@ transform = transforms.Compose([
 
 # Paths to the video directory and frame list files
 video_dir = '../dataset_1vid/turtle'  # Replace with the actual path to your video directory
-training_list_file = '../dataset_1vid/training.txt'
-testing_list_file = '../dataset_1vid/testing.txt'
+training_list_file = '../dataset_1vid/turtle/training.txt'
+testing_list_file = '../dataset_1vid/turtle/testing.txt'
 
 # Load the single video dataset for training and testing
 train_dataset = SingleVideoDataset(video_dir=video_dir, frame_list_file=training_list_file, transform=transform)

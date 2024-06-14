@@ -49,8 +49,8 @@ class LaSOTSubsetDataset(Dataset):
                 print("frame images", len(frame_files))
                 # Create template from the first frame and its bounding box
                 template_frame = Image.open(frame_files[0]).convert('RGB')
-                template_bbox = [float(x) for x in annots[0].strip().split(',')]
-                template_crop = self.crop_image(template_frame, template_bbox)
+                x, y, w, h = [int(x) for x in annots[0].strip().split(',')]
+                template_crop = template_frame.crop((x, y, x + w, y + h))
                 
                 for i in range(1, len(frame_files)):
                     search_frame = Image.open(frame_files[i]).convert('RGB')
@@ -58,10 +58,6 @@ class LaSOTSubsetDataset(Dataset):
                     template_search_pairs.append((template_crop, search_frame))
                     annotations.append([template_bbox, search_bbox])  # Using the template's bbox and current frame's bbox
         return template_search_pairs, annotations
-    
-    def crop_image(self, image, bbox):
-        x, y, w, h = bbox
-        return image.crop((x, y, x + w, y + h))
     
     def __len__(self):
         return len(self.template_search_pairs)
