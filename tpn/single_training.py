@@ -172,9 +172,6 @@ for epoch in range(num_epochs):
         template_frame = template_frame.to(device)
         search_frame = search_frame.to(device)
    
-        #print("template frame ", template_frame.shape)
-        #print("search_frame ", search_frame.shape)
-        #print("annotation", anno)
         # Forward pass
         classification_output, regression_output = model(template_frame, search_frame)
 
@@ -195,15 +192,11 @@ for epoch in range(num_epochs):
         print("for batch ", batch_idx)
         print("Loss ", classification_loss)
 
-        #regression_loss = regression_criterion(regression_output, anno)
-        #loss = classification_loss
-
         # Backpropagation
         classification_loss.backward()
         optimizer.step()
 
         total_classification_loss += classification_loss.item()
-        #total_regression_loss += regression_loss.item()
 
 
         # Threshold the model's output to get binary predictions
@@ -220,7 +213,6 @@ for epoch in range(num_epochs):
 
     epoch_accuracy = (total_correct / total_pixels) * 100
     print(f"Epoch {epoch+1}/{num_epochs}, Accuracy: {epoch_accuracy:.2f}%")
-    print(f"Epoch {epoch+1}/{num_epochs}, Classification Loss: {total_classification_loss:.4f}")
 
     #, Regression Loss: {total_regression_loss:.4f}
 

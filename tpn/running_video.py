@@ -89,7 +89,7 @@ for image_file, bbox in zip(image_files, bounding_boxes):
     combined_frame = cv2.hconcat([frame, mask_display, frame_with_bbox])
     
     # Resize the combined frame to a smaller size
-    scale_percent = 50  # percent of original size
+    scale_percent = 35  # percent of original size
     new_width = int(combined_frame.shape[1] * scale_percent / 100)
     new_height = int(combined_frame.shape[0] * scale_percent / 100)
     dim = (new_width, new_height)

@@ -36,7 +36,6 @@ class SingleVideoDataset(Dataset):
         # Read frame names from the list file
         with open(frame_list_file, 'r') as f:
             frame_names = f.read().splitlines()
-        #print("frame_names", frame_names)
 
         # Read ground truth annotations
         with open(groundtruth_file, 'r') as f:
@@ -45,24 +44,19 @@ class SingleVideoDataset(Dataset):
         # Create template from the first frame and its bounding box
         template_frame = Image.open(os.path.join(video_path, frame_names[0])).convert('RGB')
         x, y, w, h = [int(x) for x in annots[0].strip().split(',')]
-        #print("x, y, w, h", x, y, w, h)
         d = min(w, h)
         w = h = d
         template_crop = template_frame.crop((x, y, x + w, y + h))
-        #print(template_crop.size)
 
         # Map frame names to full paths and annotations
         for frame_name in frame_names:
             frame_file = os.path.join(video_path, frame_name)
-            #print(frame_file)
             frame_index = int(frame_name.split('.')[0]) - 1  # assuming frame names are like '0001.jpg', '0002.jpg', etc.
             search_frame = Image.open(frame_file).convert('RGB')
             search_bbox = [int(x) for x in annots[frame_index].strip().split(',')]
             template_search_pairs.append((template_crop, search_frame))
             annotations.append(search_bbox)
 
-        #print("annotation", annotations)
-        #print("annotation", len(annotations))
 
         return template_search_pairs, annotations
 
@@ -70,8 +64,6 @@ class SingleVideoDataset(Dataset):
         return len(self.frame_list)
 
     def __getitem__(self, idx):
-        #print("index: ", idx)
-        #print("Get item is running")
         (template_frame, search_frame) = self.frame_list[idx]
         frame_annotation = self.annotations[idx]
         if self.transform:
@@ -193,8 +185,6 @@ def test(model, device, test_loader, criterion):
 
             # Compute classification loss
             classification_loss = classification_criterion(classification_output, classification_labels)
-            print(f"Batch {batch_idx}: Classification Loss: {classification_loss.item()}")
-
             total_classification_loss += classification_loss.item()
 
             # Threshold the model's output to get binary predictions
@@ -212,7 +202,7 @@ def test(model, device, test_loader, criterion):
     # Calculate and print epoch accuracy
     epoch_accuracy = (total_correct / total_pixels) * 100
     epoch_loss = total_classification_loss / len(test_loader)
-    print(f"Test set: Average loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.2f}%")
+    print(f"Test set Accuracy: {epoch_accuracy:.2f}%")
 
 # Test the model
 test(model, device, test_loader, classification_criterion)
