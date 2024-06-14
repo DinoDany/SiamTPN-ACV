@@ -242,7 +242,7 @@ class PABlock(nn.Module):
     def forward(self, P3, P4, P5):
 
         q_4, output_P4 = self.pooling_attention_layer2(P4)
-        print("Output_P4 ", output_P4.shape)
+        #print("Output_P4 ", output_P4.shape)
 
 
         # Step 3: Apply pooling attention to each input matrix

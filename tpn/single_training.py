@@ -108,7 +108,7 @@ testing_list_file = '../dataset_1vid/turtle/testing.txt'
 # Load the single video dataset for training and testing
 train_dataset = SingleVideoDataset(video_dir=video_dir, frame_list_file=training_list_file, transform=transform, transform2=transform2)
 test_dataset = SingleVideoDataset(video_dir=video_dir, frame_list_file=testing_list_file, transform=transform, transform2=transform2)
-train_loader = DataLoader(train_dataset, batch_size=1, shuffle=False, num_workers=4)
+train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=4)
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, num_workers=4)
 
 class SiamTPN(nn.Module):
@@ -151,15 +151,18 @@ model = SiamTPN(num_heads=8, pooling_size=2, pooling_stride=2, padding=7).to(dev
 # Define loss functions and optimizer
 classification_criterion = nn.CrossEntropyLoss()
 regression_criterion = nn.SmoothL1Loss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # Training loop
-num_epochs = 10
+num_epochs = 1
 print("Training is starting")
 for epoch in range(num_epochs):
+    print("Epoch: ", epoch)
     model.train()
     total_classification_loss = 0.0
     total_regression_loss = 0.0
+    total_correct = 0
+    total_pixels = 0
 
     for batch_idx, (template_frame, search_frame, anno) in enumerate(train_loader):
         optimizer.zero_grad()
@@ -173,7 +176,8 @@ for epoch in range(num_epochs):
         #print("annotation", anno)
         # Forward pass
         classification_output, regression_output = model(template_frame, search_frame)
-        
+
+   
         # Compute classification and regression losses
         x, y, w, h = anno[0][0], anno[1][0], anno[2][0], anno[3][0]
         # Create a matrix of zeros
@@ -183,10 +187,12 @@ for epoch in range(num_epochs):
         # Move the matrix to the specified device
         classification_labels = classification_labels.to(device)
 
-        print("clss output shape", classification_output.shape)
-        print("clss lable shape", classification_labels.shape)
+        #print("clss output shape", classification_output.shape)
+        #print("clss lable shape", classification_labels.shape)
 
-        classification_loss = classification_criterion(classification_output, classification_labels)
+        classification_loss = classification_criterion(classification_output, classification_labels) 
+        print("for batch ", batch_idx)
+        print("Loss ", classification_loss)
 
         #regression_loss = regression_criterion(regression_output, anno)
         #loss = classification_loss
@@ -198,6 +204,21 @@ for epoch in range(num_epochs):
         total_classification_loss += classification_loss.item()
         #total_regression_loss += regression_loss.item()
 
+
+        # Threshold the model's output to get binary predictions
+        binary_output = (classification_output > 0.7).float()
+
+        # Calculate the number of correct predictions
+        correct = (binary_output == classification_labels).sum().item()
+        total_correct += correct
+        total_pixels += classification_labels.numel()
+
+        # Calculate and print batch accuracy
+        batch_accuracy = (correct / classification_labels.numel()) * 100
+        print(f"Batch {batch_idx}: Accuracy: {batch_accuracy:.2f}%")
+
+    epoch_accuracy = (total_correct / total_pixels) * 100
+    print(f"Epoch {epoch+1}/{num_epochs}, Accuracy: {epoch_accuracy:.2f}%")
     print(f"Epoch {epoch+1}/{num_epochs}, Classification Loss: {total_classification_loss:.4f}")
 
     #, Regression Loss: {total_regression_loss:.4f}
@@ -205,51 +226,6 @@ for epoch in range(num_epochs):
 print("Training is finished")
 
 # Save the trained model
-torch.save(model.state_dict(), 'siamtpn_model.pth')
-
-
-
-# Testing loop
-num_epochs = 10
-print("Testing is starting")
-for epoch in range(num_epochs):
-    model.eval()
-    test_loss = 0
-    correct = 0
-
-    for (template_frame, search_frame, anno) in enumerate(test_loader):
-        #optimizer.zero_grad()
-
-        # Move data to the same device as the model
-        template_frame = template_frame.to(device)
-        search_frame = search_frame.to(device)
-   
-        #print("template frame ", template_frame.shape)
-        #print("search_frame ", search_frame.shape)
-        #print("annotation", anno)
-        # Forward pass
-        classification_output, regression_output = model(template_frame, search_frame)
-        
-        # Compute classification and regression losses
-        x, y, w, h = anno[0][0], anno[1][0], anno[2][0], anno[3][0]
-        # Create a matrix of zeros
-        classification_labels = torch.zeros((224, 224))
-        classification_labels[y:y+h, x:x+w] = 1
-
-        # Move the matrix to the specified device
-        classification_labels = classification_labels.to(device)
-
-        test_loss = classification_criterion(classification_output, classification_labels)
-
-        total_classification_loss += classification_loss.item()
-        #total_regression_loss += regression_loss.item()
-
-    print(f"Epoch {epoch+1}/{num_epochs}, Classification Loss: {total_classification_loss:.4f}")
-
-    #, Regression Loss: {total_regression_loss:.4f}
-
-print("Testig is finished")
-
-
+torch.save(model.state_dict(), 'siamtpn_model2.pth')
 
 
