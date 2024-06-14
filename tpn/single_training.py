@@ -57,14 +57,12 @@ class SingleVideoDataset(Dataset):
         return len(self.frame_list)
 
     def __getitem__(self, idx):
-        frame_file = self.frame_list[idx]
+        (template_frame, search_frame) = self.frame_list[idx]
         frame_annotation = self.annotations[idx]
-
-        frame = Image.open(frame_file).convert('RGB')
         if self.transform:
-            frame = self.transform(frame)
-
-        return frame, frame_annotation
+            template_frame = self.transform(template_frame)
+            search_frame = self.transform(search_frame)
+        return template_frame, search_frame, frame_annotation
 
 # Define the transformation for the input image
 transform = transforms.Compose([
@@ -129,25 +127,21 @@ for epoch in range(num_epochs):
     total_classification_loss = 0.0
     total_regression_loss = 0.0
 
-    for batch_idx, (frames, annotations) in enumerate(train_loader):
+    for batch_idx, (template_frame, search_frame, anno) in enumerate(train_loader):
         optimizer.zero_grad()
 
-        template_frames, search_frames = frames
-        template_annotations, search_annotations = annotations
-
         # Move data to the same device as the model
-        template_frames = template_frames.to(device)
-        search_frames = search_frames.to(device)
-        template_annotations = torch.tensor(template_annotations).to(device)
-        search_annotations = torch.tensor(search_annotations).to(device)
+        template_frame = template_frame.to(device)
+        search_frame = search_frame.to(device)
+        anno = torch.tensor(anno).to(device)
 
         # Forward pass
-        classification_output, regression_output = model(template_frames, search_frames)
-
+        classification_output, regression_output = model(template_frame, search_frame)
         # Compute classification and regression losses
+        # FIXME:
         classification_labels = torch.ones(template_annotations.shape[0], dtype=torch.long, device=device)  # assuming object always present
         classification_loss = classification_criterion(classification_output, classification_labels)
-        regression_loss = regression_criterion(regression_output, search_annotations)
+        regression_loss = regression_criterion(regression_output, anno)
         loss = classification_loss + regression_loss
 
         # Backpropagation
