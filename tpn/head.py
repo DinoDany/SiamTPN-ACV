@@ -36,7 +36,7 @@ class RegressionHead(nn.Module):
         return self.conv_layers(x)
 
 
-
+"""
 # Test cases
 def test_classification_head():
     B, C, H, W = 4, 256, 14, 14  # Batch size, channels, height, width
@@ -71,4 +71,4 @@ def test_regression_head():
 # Run the tests
 test_classification_head()
 test_regression_head()
-""""""
+"""

@@ -247,20 +247,20 @@ class PABlock(nn.Module):
 
         # Step 3: Apply pooling attention to each input matrix
         output_P3 = self.pooling_attention_layer1(P3, q_4)
-        print("Output_P3 ", output_P3.shape)
+        #print("Output_P3 ", output_P3.shape)
         output_P5 = self.pooling_attention_layer1(P5, q_4)
-        print("Output_P5 ", output_P5.shape)
+        #print("Output_P5 ", output_P5.shape)
 
         # Step 4: Add the resized outputs together
         combined_output = output_P3 + output_P4 + output_P5
-        print("addition of Ps ", combined_output.shape)
+        #print("addition of Ps ", combined_output.shape)
 
         # Step 5: Apply pooling attention twice to the combined result
         _, combined_output = self.pooling_attention_layer2(combined_output)
-        print("Pooling attention after combination", combined_output.shape)
+        #print("Pooling attention after combination", combined_output.shape)
         _, final_output = self.pooling_attention_layer2(combined_output)
 
-        print("Final Output", final_output.shape)
+        #print("Final Output", final_output.shape)
 
         #Last reshape
 
